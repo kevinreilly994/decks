@@ -1,6 +1,10 @@
 """Admin configured for hand curation of the roster (Phase 1 primary UI)."""
+import logging
+
 from django.contrib import admin
 from django.utils.html import format_html
+
+logger = logging.getLogger(__name__)
 
 from .models import (
     DJ,
@@ -98,15 +102,25 @@ class DJAdmin(admin.ModelAdmin):
         from .importers import import_djs_from_file
 
         if request.method == "POST":
+            if not self.has_change_permission(request):
+                from django.core.exceptions import PermissionDenied
+                raise PermissionDenied
             upload = request.FILES.get("csv_file")
             if not upload:
                 self.message_user(request, "No file uploaded.", level=messages.ERROR)
                 return redirect("..")
-            result = import_djs_from_file(upload)
+            if upload.size and upload.size > 5 * 1024 * 1024:
+                self.message_user(request, "File too large (max 5 MB).", level=messages.ERROR)
+                return redirect("..")
+            try:
+                result = import_djs_from_file(upload)
+            except UnicodeDecodeError:
+                self.message_user(request, "Could not read file as UTF-8 CSV.", level=messages.ERROR)
+                return redirect("..")
             try:
                 call_command("recompute_scores")
             except Exception:
-                pass
+                logger.exception("recompute_scores after CSV import failed")
             self.message_user(
                 request,
                 f"Imported {result['created']} new and {result['updated']} updated DJ(s).",
@@ -156,11 +170,12 @@ class DJAdmin(admin.ModelAdmin):
                     shows += c["shows"]
                     releases += c["releases"]
                 except Exception:
+                    logger.exception("sync_dj failed for %s via %s", dj, p.name)
                     errors += 1
         try:
             recompute_all()
         except Exception:
-            pass
+            logger.exception("recompute_all after provider sync failed")
         self.message_user(
             request,
             f"Synced {count} DJ(s) via {len(providers)} provider(s): "

@@ -57,3 +57,11 @@ def test_shortlist_toggle_adds_then_lists(buyer_client):
     assert r.status_code == 302
     page = buyer_client.get("/shortlist/")
     assert b"Nova Kane" in page.content
+
+
+@pytest.mark.django_db
+def test_shortlist_toggle_blocks_open_redirect(buyer_client):
+    dj = make_dj()
+    resp = buyer_client.post(f"/shortlist/toggle/{dj.id}/", {"next": "https://evil.example/x"})
+    assert resp.status_code == 302
+    assert "evil.example" not in resp["Location"]
