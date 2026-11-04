@@ -105,6 +105,24 @@ daily. Or run the bundled blocking scheduler (needs `APScheduler`):
 python manage.py run_scheduler --hours 24 --run-now
 ```
 
+## Deployment (Docker + Postgres)
+Production runs under Gunicorn with WhiteNoise-served static files and PostgreSQL.
+
+```bash
+# one command: Postgres + web, migrations run on start
+docker compose up --build
+# then open http://localhost:8000/  (create an admin user:)
+docker compose exec web python manage.py createsuperuser
+```
+
+- `Dockerfile` — Python 3.13-slim, installs `requirements-prod.txt` (incl. psycopg,
+  gunicorn), bakes static assets via `collectstatic` at build, runs as non-root.
+- `docker-compose.yml` — `web` + `postgres:16` with a healthcheck; `web` waits for
+  the DB, migrates on start (`docker/entrypoint.sh`), then serves Gunicorn.
+- Config via env (`config.settings.prod`): `DJANGO_SECRET_KEY`, `DATABASE_URL`,
+  `DJANGO_ALLOWED_HOSTS`. HTTPS redirect + HSTS are on by default
+  (`DJANGO_SECURE_SSL_REDIRECT=false` to disable behind a non-TLS proxy / locally).
+
 ## Next
 - **Phase 2:** done — buyer UI via Django templates (this release).
 - **Phase 3:** done — Spotify + Bandsintown providers, `sync_roster`, scheduler,
