@@ -68,6 +68,13 @@ class DJ(models.Model):
     headshot_source_url = models.URLField(
         blank=True, help_text="Where the headshot came from (provenance)"
     )
+    spotify_artist_id = models.CharField(
+        max_length=64, blank=True, help_text="Spotify artist ID for live sync"
+    )
+    bandsintown_artist = models.CharField(
+        max_length=160, blank=True,
+        help_text="Bandsintown artist name (defaults to the DJ name)",
+    )
     availability = models.CharField(
         max_length=12, choices=Availability.choices, default=Availability.AVAILABLE
     )

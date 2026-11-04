@@ -34,6 +34,17 @@
 
 <div class="profile-grid">
 <div>
+  {% if spotify_spark %}
+  <div class="panel">
+    <h3>Audience growth · {{ snap_count }} snapshots</h3>
+    <div class="chart-legend"><span class="lg green">Spotify followers</span><span class="lg sun">Engagement %</span></div>
+    <svg class="spark" viewBox="0 0 {{ spotify_spark.width }} {{ spotify_spark.height }}" preserveAspectRatio="none" role="img" aria-label="Audience growth trend">
+      <polygon points="{{ spotify_spark.area }}" fill="rgba(95,160,127,.14)"></polygon>
+      <polyline points="{{ spotify_spark.line }}" fill="none" stroke="#5fa07f" stroke-width="2.5" stroke-linejoin="round"></polyline>
+      {% if eng_spark %}<polyline points="{{ eng_spark.line }}" fill="none" stroke="#e68a47" stroke-width="2" stroke-dasharray="5 4"></polyline>{% endif %}
+    </svg>
+  </div>
+  {% endif %}
   {% if pop %}
   <div class="panel">
     <h3>Popularity breakdown</h3>

@@ -2,10 +2,16 @@
 from __future__ import annotations
 
 from .base import DataProvider, EngagementDTO, ReleaseDTO, ShowDTO
+from .bandsintown import BandsintownProvider
 from .manual import ManualProvider
+from .spotify import SpotifyProvider
 from .service import sync_dj
 
-_REGISTRY: dict[str, type[DataProvider]] = {ManualProvider.name: ManualProvider}
+_REGISTRY: dict[str, type[DataProvider]] = {
+    ManualProvider.name: ManualProvider,
+    SpotifyProvider.name: SpotifyProvider,
+    BandsintownProvider.name: BandsintownProvider,
+}
 
 
 def register(cls: type[DataProvider]) -> type[DataProvider]:

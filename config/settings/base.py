@@ -93,3 +93,13 @@ DECKS_SCORE_WEIGHTS = {
     "engagement": 0.20,
     "demand": 0.20,
 }
+
+# --- Phase 3: live data providers ---
+SPOTIFY_CLIENT_ID = env("SPOTIFY_CLIENT_ID", default="")
+SPOTIFY_CLIENT_SECRET = env("SPOTIFY_CLIENT_SECRET", default="")
+BANDSINTOWN_APP_ID = env("BANDSINTOWN_APP_ID", default="")
+
+# Providers the scheduled sync runs. Unconfigured ones are skipped safely.
+DECKS_SYNC_PROVIDERS = env.list(
+    "DECKS_SYNC_PROVIDERS", default=["spotify", "bandsintown"]
+)

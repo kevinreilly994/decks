@@ -9,6 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 
+from .charts import sparkline
 from .models import DJ, Genre, PopularityScore
 
 SORTS = {
@@ -66,6 +67,12 @@ def dj_detail(request, slug):
     if pop:
         rank = PopularityScore.objects.filter(score__gt=pop.score).count() + 1
 
+    snaps = list(dj.snapshots.order_by("captured_on"))
+    spotify_spark = sparkline([s.spotify_monthly for s in snaps])
+    eng_spark = sparkline(
+        [float(s.engagement_rate) if s.engagement_rate is not None else None for s in snaps]
+    )
+
     return render(request, "roster/dj_detail.html", {
         "dj": dj,
         "pop": pop,
@@ -77,6 +84,9 @@ def dj_detail(request, slug):
         "rank": rank,
         "total": DJ.objects.filter(is_active=True).count(),
         "in_shortlist": dj.id in _shortlist_ids(request),
+        "spotify_spark": spotify_spark,
+        "eng_spark": eng_spark,
+        "snap_count": len(snaps),
         "nav": "",
     })
 

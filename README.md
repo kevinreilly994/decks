@@ -64,7 +64,7 @@ Accounts are created by an admin (`createsuperuser`, then add staff users in-app
 
 ## Testing
 ```bash
-pytest              # 19 tests: models, scoring, providers, admin
+pytest              # 28 tests: models, scoring, providers, admin
 python manage.py check
 ```
 
@@ -78,6 +78,32 @@ python manage.py check
 All pages require login and share one app shell (left nav rail + search). Styling
 lives in `roster/static/roster/css/app.css` (soft beach-green / sunset palette).
 
+## Live data (Phase 3)
+Providers live behind the Phase 1 seam in `roster/providers/`:
+- **SpotifyProvider** — follower count + top-track releases (Client Credentials).
+- **BandsintownProvider** — upcoming events -> shows.
+
+Configure credentials in `.env` (`SPOTIFY_CLIENT_ID/SECRET`, `BANDSINTOWN_APP_ID`)
+and set each DJ's `spotify_artist_id` / `bandsintown_artist` in the admin.
+
+```bash
+python manage.py sync_roster            # runs configured providers, snapshots, rescoring
+python manage.py sync_roster --dry-run  # preview
+python manage.py seed_history           # demo: backfill monthly snapshots for trend charts
+```
+
+Unconfigured providers are skipped safely, and per-DJ API errors are logged without
+aborting the run. Each run writes a dated `EngagementSnapshot`; once two or more
+exist, the profile page renders a trend sparkline (Spotify followers + engagement).
+
+### Scheduling
+Prefer the OS scheduler (cron / Windows Task Scheduler) calling `manage.py sync_roster`
+daily. Or run the bundled blocking scheduler (needs `APScheduler`):
+```bash
+python manage.py run_scheduler --hours 24 --run-now
+```
+
 ## Next
 - **Phase 2:** done — buyer UI via Django templates (this release).
-- **Phase 3:** live data providers + scheduled refresh.
+- **Phase 3:** done — Spotify + Bandsintown providers, `sync_roster`, scheduler,
+  and trend charts (this release).
