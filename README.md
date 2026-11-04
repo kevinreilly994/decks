@@ -131,12 +131,11 @@ managed Postgres; `DJANGO_SECRET_KEY` auto-generated, `DATABASE_URL` auto-wired)
 1. Sign in at https://render.com and click **New + -> Blueprint**.
 2. Select this repository and **Apply** — Render provisions the Postgres database
    and the web service and builds the Docker image.
-3. Migrations run automatically on every deploy (container entrypoint). After the
-   first deploy is live, seed demo data from the web service's **Shell** tab:
-   ```bash
-   python manage.py seed_demo && python manage.py seed_history && python manage.py recompute_scores
-   python manage.py createsuperuser
-   ```
+3. In the web service's **Environment** tab set **`DJANGO_SUPERUSER_PASSWORD`**
+   (Render prompts for it — it is `sync: false`). On boot the container migrates and,
+   because `DECKS_SEED_DEMO=1`, seeds the 12 demo DJs + history + scores and creates
+   the `kevin` superuser — all idempotent, no Shell required (Shell is a paid feature).
+   Set `DECKS_SEED_DEMO=0` later to stop re-seeding.
 4. Open the `*.onrender.com` URL. `DJANGO_ALLOWED_HOSTS` is set to `.onrender.com`;
    tighten it to your exact host / custom domain later.
 
