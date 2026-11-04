@@ -22,3 +22,11 @@ services:
         fromDatabase:
           name: decks-db
           property: connectionString
+      - key: DECKS_SEED_DEMO
+        value: "1"
+      - key: DJANGO_SUPERUSER_USERNAME
+        value: kevin
+      - key: DJANGO_SUPERUSER_EMAIL
+        value: kevinreilly994@gmail.com
+      - key: DJANGO_SUPERUSER_PASSWORD
+        sync: false
