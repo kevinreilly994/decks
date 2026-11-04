@@ -124,6 +124,25 @@ docker compose exec web python manage.py createsuperuser
   `DJANGO_ALLOWED_HOSTS`. HTTPS redirect + HSTS are on by default
   (`DJANGO_SECURE_SSL_REDIRECT=false` to disable behind a non-TLS proxy / locally).
 
+### Deploy to Render
+This repo includes a `render.yaml` blueprint (web service from the Dockerfile + a
+managed Postgres; `DJANGO_SECRET_KEY` auto-generated, `DATABASE_URL` auto-wired).
+
+1. Sign in at https://render.com and click **New + -> Blueprint**.
+2. Select this repository and **Apply** — Render provisions the Postgres database
+   and the web service and builds the Docker image.
+3. Migrations run automatically on every deploy (container entrypoint). After the
+   first deploy is live, seed demo data from the web service's **Shell** tab:
+   ```bash
+   python manage.py seed_demo && python manage.py seed_history && python manage.py recompute_scores
+   python manage.py createsuperuser
+   ```
+4. Open the `*.onrender.com` URL. `DJANGO_ALLOWED_HOSTS` is set to `.onrender.com`;
+   tighten it to your exact host / custom domain later.
+
+Notes: the free web plan sleeps when idle and the free Postgres is time-limited —
+bump those `plan:` values in `render.yaml` for always-on.
+
 ## Branch protection
 `main` is protected by an active repository ruleset (**Require CI on main**):
 
