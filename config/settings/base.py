@@ -82,9 +82,10 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# Internal-only tool: route all auth through the admin login; no public signup.
-LOGIN_URL = "admin:login"
-LOGIN_REDIRECT_URL = "admin:index"
+# Internal-only tool: branded login at /login/; no public signup.
+LOGIN_URL = "login"
+LOGIN_REDIRECT_URL = "roster:directory"
+LOGOUT_REDIRECT_URL = "login"
 
 # Popularity-score component weights. Tunable here without touching code.
 DECKS_SCORE_WEIGHTS = {

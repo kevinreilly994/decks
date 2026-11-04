@@ -2,6 +2,7 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
+from django.contrib.auth import views as auth_views
 from django.http import JsonResponse
 from django.urls import include, path
 
@@ -13,6 +14,8 @@ def health(_request):
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("health/", health, name="health"),
+    path("login/", auth_views.LoginView.as_view(redirect_authenticated_user=True), name="login"),
+    path("logout/", auth_views.LogoutView.as_view(), name="logout"),
     path("", include("roster.urls")),
 ]
 
