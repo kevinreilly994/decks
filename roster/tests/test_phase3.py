@@ -50,15 +50,12 @@ def test_registry_has_live_providers():
 
 
 @pytest.mark.django_db
-def test_spotify_maps_releases_and_followers():
+def test_spotify_releases_empty_when_no_albums():
     dj = make_dj()
     dj.spotify_artist_id = "abc123"
     dj.save()
     provider = SpotifyProvider(session=FakeSpotifySession(), token="tok")
-    releases = provider.fetch_releases(dj)
-    assert releases[0].title == "Solstice"
-    assert releases[0].released_on == date(2025, 6, 1)
-    assert provider.fetch_engagement(dj).spotify_monthly == 3_410_000
+    assert provider.fetch_releases(dj) == []
 
 
 @pytest.mark.django_db
@@ -94,7 +91,10 @@ def test_sync_dj_creates_rows_stamped_by_provider():
 
 
 @pytest.mark.django_db
-def test_sync_roster_skips_unconfigured_providers():
+def test_sync_roster_skips_unconfigured_providers(settings):
+    settings.SPOTIFY_CLIENT_ID = ""
+    settings.SPOTIFY_CLIENT_SECRET = ""
+    settings.BANDSINTOWN_APP_ID = ""
     make_dj()
     out = StringIO()
     call_command("sync_roster", stdout=out)
@@ -130,3 +130,54 @@ def test_sparkline_builds_points():
     assert sp is not None
     assert sp["line"].count(",") == 4
     assert sp["width"] and sp["height"]
+
+
+class FakeAlbumsSession:
+    def post(self, *a, **k):
+        return FakeResp({"access_token": "tok"})
+
+    def get(self, url, headers=None, timeout=None):
+        return FakeResp({"items": [
+            {"name": "Night One", "release_date": "2025-06-01", "album_type": "single",
+             "external_urls": {"spotify": "http://x"}},
+            {"name": "Night One", "release_date": "2025-06-01", "album_type": "single",
+             "external_urls": {"spotify": "http://x"}},
+            {"name": "Day Two", "release_date": "2024-01-01", "album_type": "album",
+             "external_urls": {"spotify": "http://y"}},
+        ]})
+
+
+@pytest.mark.django_db
+def test_spotify_releases_from_albums_dedup_and_sorted():
+    dj = make_dj()
+    dj.spotify_artist_id = "abc"
+    dj.save()
+    rels = SpotifyProvider(session=FakeAlbumsSession(), token="tok").fetch_releases(dj)
+    assert [r.title for r in rels] == ["Night One", "Day Two"]
+    assert rels[0].released_on.year == 2025
+
+
+@pytest.mark.django_db
+def test_spotify_engagement_is_none_now():
+    dj = make_dj()
+    dj.spotify_artist_id = "abc"
+    dj.save()
+    assert SpotifyProvider(session=FakeAlbumsSession(), token="tok").fetch_engagement(dj) is None
+
+
+@pytest.mark.django_db
+def test_sync_providers_action_without_creds(client, settings):
+    from django.contrib.auth.models import User
+    settings.SPOTIFY_CLIENT_ID = ""
+    settings.SPOTIFY_CLIENT_SECRET = ""
+    settings.BANDSINTOWN_APP_ID = ""
+    User.objects.create_superuser("adm2", "a2@x.com", "pw-12345!")
+    client.force_login(User.objects.get(username="adm2"))
+    dj = make_dj()
+    resp = client.post(
+        "/admin/roster/dj/",
+        {"action": "sync_providers", "_selected_action": [str(dj.id)]},
+        follow=True,
+    )
+    assert resp.status_code == 200
+    assert dj.releases.count() == 0
