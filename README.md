@@ -1,5 +1,7 @@
 # Decks — DJ Booking Database
 
+[![CI](https://github.com/kevinreilly994/decks/actions/workflows/ci.yml/badge.svg)](https://github.com/kevinreilly994/decks/actions/workflows/ci.yml)
+
 A private, internal booking database for house-music DJs. **Phase 1 (this repo):**
 the Django foundation — data model, an admin panel for hand-curating the roster,
 internal-only auth, a popularity-score engine, a swappable data-provider seam, and
