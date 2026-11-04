@@ -4,7 +4,7 @@ Expected header columns (case-insensitive; unknown columns ignored):
   name, genre, home_base, availability, fee_min, fee_max, bio,
   manager_name, agency, booking_email, phone,
   instagram, spotify, soundcloud, tiktok,
-  spotify_artist_id, bandsintown_artist
+  spotify_artist_id, bandsintown_artist, headshot_source_url
 
 Only `name` and `genre` are required per row. Existing DJs (matched by name)
 are updated, so re-importing is idempotent.
@@ -52,6 +52,8 @@ def import_djs_from_rows(rows):
                 "fee_max": _to_int(row.get("fee_max")),
                 "spotify_artist_id": row.get("spotify_artist_id", ""),
                 "bandsintown_artist": row.get("bandsintown_artist", ""),
+                "headshot_source_url": row.get("headshot_source_url")
+                or row.get("headshot_url", ""),
             },
         )
         dj.genres.add(genre)

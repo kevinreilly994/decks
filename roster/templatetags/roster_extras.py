@@ -1,5 +1,6 @@
 """Presentation helpers for the roster templates."""
 from django import template
+from django.utils.html import format_html
 
 register = template.Library()
 
@@ -35,3 +36,27 @@ def avatar_grad(name):
 def initials(name):
     parts = (name or "?").split()
     return "".join(p[0] for p in parts[:2]).upper()
+
+
+@register.simple_tag
+def dj_avatar(dj, size=""):
+    """Render a DJ avatar: their headshot image if set, else a gradient monogram."""
+    cls = "avatar " + size if size else "avatar"
+    url = ""
+    headshot = getattr(dj, "headshot", None)
+    if headshot:
+        try:
+            url = headshot.url
+        except Exception:
+            url = ""
+    if not url:
+        url = getattr(dj, "headshot_source_url", "") or ""
+    if url:
+        return format_html(
+            '<div class="{}" style="overflow:hidden">'
+            '<img src="{}" alt="{}" loading="lazy" '
+            'style="width:100%;height:100%;object-fit:cover;display:block"></div>',
+            cls, url, dj.name,
+        )
+    return format_html('<div class="{}" style="background:{}">{}</div>',
+                       cls, avatar_grad(dj.name), initials(dj.name))

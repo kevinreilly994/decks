@@ -18,7 +18,7 @@
   <div class="board-row item">
     <div class="rank {% if forloop.counter <= 3 %}top{% endif %}">{{ forloop.counter }}</div>
     <div class="board-dj">
-      <div class="avatar sm" style="background:{{ s.dj.name|avatar_grad }}">{{ s.dj.name|initials }}</div>
+      {% dj_avatar s.dj "sm" %}
       <div><a class="name" href="{% url 'roster:dj_detail' s.dj.slug %}">{{ s.dj.name }}</a>
         <div class="subt">{{ s.dj.home_base }}</div></div>
     </div>

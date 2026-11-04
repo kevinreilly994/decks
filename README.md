@@ -39,6 +39,7 @@ Set `DATABASE_URL` in `.env`, e.g.
 Bulk import is also available in the **admin**: DJs changelist -> **Import DJs (CSV)**
 (upload a CSV — works without shell access, e.g. on Render free tier). Only `name`
 and `genre` are required; existing DJs are matched by name and updated.
+A `headshot_source_url` column, if set, is shown as the profile image (displayed from that URL — ensure you have the rights to use it).
 
 ## Project layout
 ```
