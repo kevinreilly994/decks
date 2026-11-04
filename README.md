@@ -167,6 +167,11 @@ gh pr create --fill            # open a PR
 gh pr merge --merge --delete-branch
 ```
 
+In the DJ admin, the **Sync releases & shows from providers** action pulls
+Spotify releases and Bandsintown shows for the selected DJs (needs
+`SPOTIFY_CLIENT_ID/SECRET` and/or `BANDSINTOWN_APP_ID` set). Run it in batches
+of ~25-50 to stay within request limits.
+
 Admins manage the rule under **Settings -> Rules -> Rulesets** (or via
 `gh api repos/<owner>/<repo>/rulesets`).
 

@@ -79,23 +79,33 @@ class SpotifyProvider(DataProvider):
     def fetch_releases(self, dj) -> list[ReleaseDTO]:
         if not dj.spotify_artist_id:
             return []
-        data = self._get(f"/artists/{dj.spotify_artist_id}/top-tracks?market=US")
+        # top-tracks is restricted for API apps; use the albums endpoint instead.
+        data = self._get(f"/artists/{dj.spotify_artist_id}/albums?market=US&limit=10")
+        seen = set()
         out = []
-        for track in data.get("tracks", []):
-            album = track.get("album", {})
+        items = sorted(
+            data.get("items", []),
+            key=lambda a: a.get("release_date", ""),
+            reverse=True,
+        )
+        for album in items:
+            if album.get("album_type") not in ("single", "album"):
+                continue
+            title = album.get("name", "")
+            key = title.lower()
+            if not title or key in seen:
+                continue
+            seen.add(key)
             out.append(ReleaseDTO(
-                title=track.get("name", "Untitled"),
+                title=title,
                 released_on=_parse_date(album.get("release_date")),
-                label=album.get("name", ""),
-                url=track.get("external_urls", {}).get("spotify", ""),
+                label=album.get("album_type", ""),
+                url=album.get("external_urls", {}).get("spotify", ""),
             ))
+            if len(out) >= 6:
+                break
         return out
 
     def fetch_engagement(self, dj) -> EngagementDTO | None:
-        if not dj.spotify_artist_id:
-            return None
-        artist = self._get(f"/artists/{dj.spotify_artist_id}")
-        return EngagementDTO(
-            captured_on=date.today(),
-            spotify_monthly=artist.get("followers", {}).get("total"),
-        )
+        # Spotify's API no longer exposes follower/listener counts to this app tier.
+        return None

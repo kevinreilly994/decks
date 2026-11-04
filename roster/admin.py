@@ -45,6 +45,7 @@ class EngagementSnapshotInline(admin.TabularInline):
 @admin.register(DJ)
 class DJAdmin(admin.ModelAdmin):
     change_list_template = "admin/roster/dj/change_list.html"
+    actions = ["sync_providers"]
     list_display = (
         "name",
         "primary_genre",
@@ -121,6 +122,51 @@ class DJAdmin(admin.ModelAdmin):
             "opts": self.model._meta,
         }
         return TemplateResponse(request, "admin/roster/dj/import_csv.html", context)
+
+    @admin.action(description="Sync releases & shows from providers (Spotify, Bandsintown)")
+    def sync_providers(self, request, queryset):
+        from django.contrib import messages
+
+        from .providers import get_provider, sync_dj
+        from .scoring import recompute_all
+
+        providers = []
+        for name in ("spotify", "bandsintown"):
+            try:
+                p = get_provider(name)
+            except ValueError:
+                continue
+            if getattr(type(p), "is_configured", lambda: True)():
+                providers.append(p)
+        if not providers:
+            self.message_user(
+                request,
+                "No providers configured. Set SPOTIFY_CLIENT_ID/SECRET and/or "
+                "BANDSINTOWN_APP_ID in the environment.",
+                level=messages.ERROR,
+            )
+            return
+
+        shows = releases = errors = count = 0
+        for dj in queryset:
+            count += 1
+            for p in providers:
+                try:
+                    c = sync_dj(dj, p)
+                    shows += c["shows"]
+                    releases += c["releases"]
+                except Exception:
+                    errors += 1
+        try:
+            recompute_all()
+        except Exception:
+            pass
+        self.message_user(
+            request,
+            f"Synced {count} DJ(s) via {len(providers)} provider(s): "
+            f"{releases} releases, {shows} shows, {errors} error(s).",
+            level=messages.WARNING if errors else messages.SUCCESS,
+        )
 
 
 @admin.register(PopularityScore)
