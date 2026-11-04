@@ -61,8 +61,9 @@ stamped with that provider's name, so hand-entered data is never clobbered. Phas
 adds `spotify.py` / `bandsintown.py` / `instagram.py` behind the same contract.
 
 ## Auth
-Internal-only: everything lives behind the Django admin login; no public signup.
-Accounts are created by an admin (`createsuperuser`, then add staff users in-app).
+Internal-only: a branded login page at `/login/` gates every page; no public
+signup. Accounts are created by an admin (`createsuperuser`, or add users in the
+Django admin). Sign-out posts to `/logout/`.
 
 ## Testing
 ```bash

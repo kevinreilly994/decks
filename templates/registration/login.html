@@ -1,0 +1,39 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sign in · Decks</title>
+  <link rel="stylesheet" href="{% static 'roster/css/app.css' %}">
+</head>
+<body class="login-body">
+  <main class="login-screen">
+    <div class="login-card">
+      <div class="brand-lock">
+        <div class="brand-mark">D</div>
+        <div class="brand-word">DECKS</div>
+      </div>
+      <h1>The booking room for house music</h1>
+      <p class="login-sub">Internal roster &amp; booking intelligence.<br>Authorized team members only.</p>
+      {% if form.errors %}
+      <div class="login-error">That username and password didn&#39;t match. Please try again.</div>
+      {% endif %}
+      <form method="post" action="{% url 'login' %}" class="login-form">
+        {% csrf_token %}
+        <div class="field">
+          <label for="id_username">Username</label>
+          {{ form.username }}
+        </div>
+        <div class="field">
+          <label for="id_password">Password</label>
+          {{ form.password }}
+        </div>
+        <input type="hidden" name="next" value="{{ next }}">
+        <button class="btn btn-primary btn-block login-submit" type="submit">Enter the booking room →</button>
+      </form>
+      <p class="login-note">No account? Ask an admin to create one.</p>
+    </div>
+  </main>
+</body>
+</html>
