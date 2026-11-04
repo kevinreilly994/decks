@@ -1,0 +1,39 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Decks{% endblock %} · Decks</title>
+  <link rel="stylesheet" href="{% static 'roster/css/app.css' %}">
+</head>
+<body>
+<div class="app">
+  <nav class="rail">
+    <a class="mark" href="{% url 'roster:directory' %}"><span>D</span></a>
+    <a class="nav-btn {% if nav == 'directory' %}active{% endif %}" href="{% url 'roster:directory' %}">
+      <span class="ic">▦</span><span class="tip">Roster</span></a>
+    <a class="nav-btn {% if nav == 'leaderboard' %}active{% endif %}" href="{% url 'roster:leaderboard' %}">
+      <span class="ic">▰</span><span class="tip">Leaderboard</span></a>
+    <a class="nav-btn {% if nav == 'shortlist' %}active{% endif %}" href="{% url 'roster:shortlist' %}">
+      <span class="ic">♥</span><span class="tip">Shortlist</span></a>
+    <a class="nav-btn" href="/admin/"><span class="ic">✎</span><span class="tip">Admin</span></a>
+    <span class="rail-spacer"></span>
+    <a class="nav-btn" href="/admin/logout/"><span class="ic">⇥</span><span class="tip">Sign out</span></a>
+  </nav>
+  <header class="topbar">
+    <form class="search" method="get" action="{% url 'roster:directory' %}">
+      <span class="search-ic">⌕</span>
+      <input type="search" name="q" value="{{ q|default:'' }}" placeholder="Search DJs, genres, cities…">
+    </form>
+    <div class="who">
+      <div class="av">{{ user.username|slice:":2"|upper }}</div>
+      <div class="meta"><b>{{ user.get_username }}</b><span>Talent buyer</span></div>
+    </div>
+  </header>
+  <main class="main">
+    {% block content %}{% endblock %}
+  </main>
+</div>
+</body>
+</html>

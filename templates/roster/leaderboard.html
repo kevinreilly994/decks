@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load roster_extras %}
+{% block title %}Leaderboard{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <div class="eyebrow">Ranking</div>
+    <h2>Popularity Leaderboard</h2>
+    <div class="sub">Composite index — streaming · social · engagement · booking demand.</div>
+  </div>
+</div>
+<div class="board">
+  <div class="board-row head">
+    <div>#</div><div>Artist</div><div class="hide-sm">Genre</div>
+    <div class="hide-sm">Index</div><div class="ra">7-day</div>
+  </div>
+  {% for s in scores %}
+  <div class="board-row item">
+    <div class="rank {% if forloop.counter <= 3 %}top{% endif %}">{{ forloop.counter }}</div>
+    <div class="board-dj">
+      <div class="avatar sm" style="background:{{ s.dj.name|avatar_grad }}">{{ s.dj.name|initials }}</div>
+      <div><a class="name" href="{% url 'roster:dj_detail' s.dj.slug %}">{{ s.dj.name }}</a>
+        <div class="subt">{{ s.dj.home_base }}</div></div>
+    </div>
+    <div class="hide-sm"><span class="tag genre">{{ s.dj.primary_genre.name }}</span></div>
+    <div class="hide-sm scorebar">
+      <span class="track"><span class="fill" style="width:{% widthratio s.score top 100 %}%"></span></span>
+      <span class="num">{{ s.score }}</span>
+    </div>
+    <div class="ra delta {% if s.delta_7d > 0 %}up{% elif s.delta_7d < 0 %}down{% endif %}">
+      {% if s.delta_7d > 0 %}▲ +{{ s.delta_7d }}{% elif s.delta_7d < 0 %}▼ {{ s.delta_7d }}{% else %}—{% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}
