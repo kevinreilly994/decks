@@ -23,7 +23,7 @@ services:
           name: decks-db
           property: connectionString
       - key: DECKS_SEED_DEMO
-        value: "1"
+        value: "0"
       - key: DJANGO_SUPERUSER_USERNAME
         value: kevin
       - key: DJANGO_SUPERUSER_EMAIL

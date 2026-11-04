@@ -44,6 +44,7 @@ class EngagementSnapshotInline(admin.TabularInline):
 
 @admin.register(DJ)
 class DJAdmin(admin.ModelAdmin):
+    change_list_template = "admin/roster/dj/change_list.html"
     list_display = (
         "name",
         "primary_genre",
@@ -75,6 +76,51 @@ class DJAdmin(admin.ModelAdmin):
                 obj.headshot.url,
             )
         return "No headshot uploaded"
+
+    def get_urls(self):
+        from django.urls import path
+        extra = [
+            path(
+                "import-csv/",
+                self.admin_site.admin_view(self.import_csv),
+                name="roster_dj_import_csv",
+            ),
+        ]
+        return extra + super().get_urls()
+
+    def import_csv(self, request):
+        from django.contrib import messages
+        from django.core.management import call_command
+        from django.shortcuts import redirect
+        from django.template.response import TemplateResponse
+
+        from .importers import import_djs_from_file
+
+        if request.method == "POST":
+            upload = request.FILES.get("csv_file")
+            if not upload:
+                self.message_user(request, "No file uploaded.", level=messages.ERROR)
+                return redirect("..")
+            result = import_djs_from_file(upload)
+            try:
+                call_command("recompute_scores")
+            except Exception:
+                pass
+            self.message_user(
+                request,
+                f"Imported {result['created']} new and {result['updated']} updated DJ(s).",
+                level=messages.SUCCESS,
+            )
+            for err in result["errors"][:20]:
+                self.message_user(request, err, level=messages.WARNING)
+            return redirect("..")
+
+        context = {
+            **self.admin_site.each_context(request),
+            "title": "Import DJs from CSV",
+            "opts": self.model._meta,
+        }
+        return TemplateResponse(request, "admin/roster/dj/import_csv.html", context)
 
 
 @admin.register(PopularityScore)
