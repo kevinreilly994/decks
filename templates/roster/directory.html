@@ -31,7 +31,7 @@
   <div class="card">
     {% if dj.score is not None %}<div class="score-pill">{{ dj.score }}</div>{% endif %}
     <div class="top">
-      <div class="avatar" style="background:{{ dj.name|avatar_grad }}">{{ dj.name|initials }}</div>
+      {% dj_avatar dj %}
       <div>
         <a class="name" href="{% url 'roster:dj_detail' dj.slug %}">{{ dj.name }}</a>
         <div class="loc">◉ {{ dj.home_base }}</div>

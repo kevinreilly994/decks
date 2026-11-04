@@ -64,3 +64,11 @@ def test_admin_import_csv_view(client):
     resp = client.post("/admin/roster/dj/import-csv/", {"csv_file": upload})
     assert resp.status_code == 302
     assert DJ.objects.filter(name="Real One").exists()
+
+
+@pytest.mark.django_db
+def test_import_sets_headshot_source_url():
+    rows = [{"name": "Shot One", "genre": "House",
+             "headshot_source_url": "https://example.com/x.webp"}]
+    import_djs_from_rows(rows)
+    assert DJ.objects.get(name="Shot One").headshot_source_url == "https://example.com/x.webp"

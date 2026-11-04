@@ -16,7 +16,7 @@
   <div class="ccard">
     <div class="chead">
       <form method="post" action="{% url 'roster:shortlist_toggle' dj.id %}">{% csrf_token %}<input type="hidden" name="next" value="{% url 'roster:shortlist' %}"><button class="remove" type="submit" title="Remove">✕</button></form>
-      <div class="avatar" style="background:{{ dj.name|avatar_grad }}">{{ dj.name|initials }}</div>
+      {% dj_avatar dj %}
       <a class="name" href="{% url 'roster:dj_detail' dj.slug %}">{{ dj.name }}</a>
     </div>
     <div class="crow"><span class="k">Popularity</span><span class="v">{{ dj.score|default:"—" }}</span></div>

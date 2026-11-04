@@ -5,7 +5,7 @@
 <a class="back" href="{% url 'roster:directory' %}">‹ Back to roster</a>
 
 <div class="profile-hero">
-  <div class="avatar lg" style="background:{{ dj.name|avatar_grad }}">{{ dj.name|initials }}</div>
+  {% dj_avatar dj "lg" %}
   <div class="ph-id">
     <h2>{{ dj.name }}</h2>
     <div class="loc">◉ {{ dj.home_base }}
