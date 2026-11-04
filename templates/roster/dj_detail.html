@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% load roster_extras %}
+{% block title %}{{ dj.name }}{% endblock %}
+{% block content %}
+<a class="back" href="{% url 'roster:directory' %}">‹ Back to roster</a>
+
+<div class="profile-hero">
+  <div class="avatar lg" style="background:{{ dj.name|avatar_grad }}">{{ dj.name|initials }}</div>
+  <div class="ph-id">
+    <h2>{{ dj.name }}</h2>
+    <div class="loc">◉ {{ dj.home_base }}
+      <span class="status {{ dj.availability }}">{{ dj.get_availability_display }}</span>
+    </div>
+    <div class="tags"><span class="tag genre">{{ dj.primary_genre.name }}</span></div>
+    {% if dj.bio %}<p class="bio">{{ dj.bio }}</p>{% endif %}
+  </div>
+  {% if pop %}
+  <div class="ph-score">
+    <div class="big">{{ pop.score }}</div>
+    <div class="lbl">Popularity</div>
+    <div class="rank">Rank #{{ rank }} of {{ total }}</div>
+  </div>
+  {% endif %}
+</div>
+
+{% if snapshot %}
+<div class="metric-row">
+  <div class="metric"><div class="k">Spotify monthly</div><div class="v">{{ snapshot.spotify_monthly|compact }}</div></div>
+  <div class="metric"><div class="k">Instagram</div><div class="v">{{ snapshot.instagram_followers|compact }}</div></div>
+  <div class="metric"><div class="k">TikTok</div><div class="v">{{ snapshot.tiktok_followers|compact }}</div></div>
+  <div class="metric"><div class="k">Engagement</div><div class="v">{{ snapshot.engagement_rate }}%</div><div class="d">industry avg 3.2%</div></div>
+</div>
+{% endif %}
+
+<div class="profile-grid">
+<div>
+  {% if pop %}
+  <div class="panel">
+    <h3>Popularity breakdown</h3>
+    <div class="bar"><span class="bk">Streaming reach</span><span class="track"><span class="fill" style="width:{{ pop.streaming_component }}%"></span></span><span class="bn">{{ pop.streaming_component }}</span></div>
+    <div class="bar"><span class="bk">Social following</span><span class="track"><span class="fill" style="width:{{ pop.social_component }}%"></span></span><span class="bn">{{ pop.social_component }}</span></div>
+    <div class="bar"><span class="bk">Engagement quality</span><span class="track"><span class="fill data" style="width:{{ pop.engagement_component }}%"></span></span><span class="bn">{{ pop.engagement_component }}</span></div>
+    <div class="bar"><span class="bk">Booking demand</span><span class="track"><span class="fill" style="width:{{ pop.demand_component }}%"></span></span><span class="bn">{{ pop.demand_component }}</span></div>
+  </div>
+  {% endif %}
+
+  <div class="panel">
+    <h3>Upcoming shows</h3>
+    <div class="timeline">
+      {% for s in upcoming %}
+      <div class="tl-item"><div class="tl-date">{{ s.date|date:"M j" }}</div><div class="tl-main"><b>{{ s.event_name }}</b><span>{{ s.venue_city }}</span></div><span class="pill {% if s.status == 'confirmed' %}confirmed{% else %}offer{% endif %}">{{ s.get_status_display }}</span></div>
+      {% empty %}<p class="muted">No upcoming shows listed.</p>{% endfor %}
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>Recently played</h3>
+    <div class="timeline">
+      {% for s in past %}
+      <div class="tl-item"><div class="tl-date">{{ s.date|date:"M j" }}</div><div class="tl-main"><b>{{ s.event_name }}</b><span>{{ s.venue_city }}</span></div><span class="pill">Played</span></div>
+      {% empty %}<p class="muted">Nothing logged yet.</p>{% endfor %}
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>Recent releases</h3>
+    {% for r in releases %}
+    <div class="release"><div class="cover" style="background:{{ dj.name|avatar_grad }}">♪</div><div class="ti"><b>{{ r.title }}</b><span>{{ r.label }} · {{ r.released_on|date:"Y" }}</span></div><div class="plays">{% if r.play_count %}{{ r.play_count|compact }}{% else %}—{% endif %}<br><span class="sm">plays</span></div></div>
+    {% empty %}<p class="muted">No releases listed.</p>{% endfor %}
+  </div>
+</div>
+
+<aside>
+  <div class="rate-box"><div class="lbl">Typical booking fee</div><div class="amt">{{ dj.fee_display }}</div><div class="per">per show · negotiable</div></div>
+  {% if dj.management %}
+  <div class="panel booking">
+    <h3>Management &amp; booking</h3>
+    <div class="row"><span class="k">Manager</span><span class="v">{{ dj.management.manager_name }}</span></div>
+    <div class="row"><span class="k">Agency</span><span class="v">{{ dj.management.agency }}</span></div>
+    <div class="row"><span class="k">Email</span><span class="v"><a href="mailto:{{ dj.management.booking_email }}">{{ dj.management.booking_email }}</a></span></div>
+    <div class="row"><span class="k">Phone</span><span class="v">{{ dj.management.phone }}</span></div>
+  </div>
+  {% endif %}
+  <div class="panel">
+    <h3>Linked socials</h3>
+    <div class="socials">
+      {% for s in socials %}<a class="soc" href="{{ s.url }}" target="_blank" rel="noopener">{{ s.get_platform_display }}<span class="h">{{ s.handle }} · {{ s.follower_count|compact }}</span></a>{% endfor %}
+    </div>
+  </div>
+  <form method="post" action="{% url 'roster:shortlist_toggle' dj.id %}">
+    {% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
+    <button class="btn btn-primary btn-block" type="submit">{% if in_shortlist %}✓ On shortlist{% else %}+ Add to shortlist{% endif %}</button>
+  </form>
+</aside>
+</div>
+{% endblock %}

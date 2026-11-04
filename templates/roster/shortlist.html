@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load roster_extras %}
+{% block title %}Shortlist{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <div class="eyebrow">Compare</div>
+    <h2>Event Shortlist</h2>
+    <div class="sub">Side-by-side comparison for your next booking.</div>
+  </div>
+</div>
+{% if djs %}
+<div class="compare"><div class="compare-grid">
+  {% for dj in djs %}
+  {% with snap=dj.latest_snapshot %}
+  <div class="ccard">
+    <div class="chead">
+      <form method="post" action="{% url 'roster:shortlist_toggle' dj.id %}">{% csrf_token %}<input type="hidden" name="next" value="{% url 'roster:shortlist' %}"><button class="remove" type="submit" title="Remove">✕</button></form>
+      <div class="avatar" style="background:{{ dj.name|avatar_grad }}">{{ dj.name|initials }}</div>
+      <a class="name" href="{% url 'roster:dj_detail' dj.slug %}">{{ dj.name }}</a>
+    </div>
+    <div class="crow"><span class="k">Popularity</span><span class="v">{{ dj.score|default:"—" }}</span></div>
+    <div class="crow"><span class="k">Genre</span><span class="v">{{ dj.primary_genre.name }}</span></div>
+    <div class="crow"><span class="k">Home base</span><span class="v">{{ dj.home_base }}</span></div>
+    <div class="crow"><span class="k">Spotify</span><span class="v">{% if snap %}{{ snap.spotify_monthly|compact }}{% else %}—{% endif %}</span></div>
+    <div class="crow"><span class="k">Instagram</span><span class="v">{% if snap %}{{ snap.instagram_followers|compact }}{% else %}—{% endif %}</span></div>
+    <div class="crow"><span class="k">Engagement</span><span class="v">{% if snap and snap.engagement_rate %}{{ snap.engagement_rate }}%{% else %}—{% endif %}</span></div>
+    <div class="crow"><span class="k">Fee</span><span class="v">{{ dj.fee_display }}</span></div>
+    <div class="crow"><span class="k">Availability</span><span class="v">{{ dj.get_availability_display }}</span></div>
+    <div class="cfoot"><a class="btn btn-ghost btn-block" href="{% url 'roster:dj_detail' dj.slug %}">Open profile</a></div>
+  </div>
+  {% endwith %}
+  {% endfor %}
+</div></div>
+{% else %}
+<div class="empty big">
+  <div class="empty-ic">♥</div>
+  <h3>Your shortlist is empty</h3>
+  <p>Add DJs from the roster to compare them side by side.</p>
+  <a class="btn btn-primary" href="{% url 'roster:directory' %}">Browse roster</a>
+</div>
+{% endif %}
+{% endblock %}

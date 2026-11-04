@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load roster_extras %}
+{% block title %}Roster{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <div class="eyebrow">Roster</div>
+    <h2>House Music Talent</h2>
+    <div class="sub">{{ djs|length }} artist{{ djs|length|pluralize }} · {% if active_genre %}{{ active_genre }}{% else %}all genres{% endif %}</div>
+  </div>
+</div>
+
+<form class="filters" method="get">
+  {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
+  <button class="chip {% if not active_genre %}on{% endif %}" name="genre" value="">All</button>
+  {% for g in genres %}
+    <button class="chip {% if active_genre == g.slug %}on{% endif %}" name="genre" value="{{ g.slug }}">{{ g.name }}</button>
+  {% endfor %}
+  <span class="sort">
+    <select name="sort" onchange="this.form.submit()">
+      <option value="score" {% if sort == 'score' %}selected{% endif %}>Sort: Popularity</option>
+      <option value="trending" {% if sort == 'trending' %}selected{% endif %}>Sort: Trending</option>
+      <option value="name" {% if sort == 'name' %}selected{% endif %}>Sort: A–Z</option>
+    </select>
+  </span>
+</form>
+
+<div class="grid">
+  {% for dj in djs %}
+  {% with snap=dj.latest_snapshot next=dj.upcoming_shows.first %}
+  <div class="card">
+    {% if dj.score is not None %}<div class="score-pill">{{ dj.score }}</div>{% endif %}
+    <div class="top">
+      <div class="avatar" style="background:{{ dj.name|avatar_grad }}">{{ dj.name|initials }}</div>
+      <div>
+        <a class="name" href="{% url 'roster:dj_detail' dj.slug %}">{{ dj.name }}</a>
+        <div class="loc">◉ {{ dj.home_base }}</div>
+      </div>
+    </div>
+    <div class="tags">
+      <span class="tag genre">{{ dj.primary_genre.name }}</span>
+      <span class="status {{ dj.availability }}">{{ dj.get_availability_display }}</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="k">Spotify monthly</div><div class="v">{% if snap %}{{ snap.spotify_monthly|compact }}{% else %}—{% endif %}</div></div>
+      <div class="stat"><div class="k">Instagram</div><div class="v">{% if snap %}{{ snap.instagram_followers|compact }}{% else %}—{% endif %}</div></div>
+      <div class="stat"><div class="k">Engagement</div><div class="v">{% if snap and snap.engagement_rate %}{{ snap.engagement_rate }}%{% else %}—{% endif %}</div></div>
+      <div class="stat"><div class="k">Fee range</div><div class="v sm">{{ dj.fee_display }}</div></div>
+    </div>
+    <div class="nextshow">Next: <b>{% if next %}{{ next.event_name }} · {{ next.date|date:"M j" }}{% else %}—{% endif %}</b></div>
+    <div class="actions">
+      <a class="btn btn-primary" href="{% url 'roster:dj_detail' dj.slug %}">View profile</a>
+      <form method="post" action="{% url 'roster:shortlist_toggle' dj.id %}">
+        {% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <button class="btn btn-ghost" type="submit">{% if dj.id in shortlist %}✓ Listed{% else %}+ Shortlist{% endif %}</button>
+      </form>
+    </div>
+  </div>
+  {% endwith %}
+  {% empty %}
+  <div class="empty"><h3>No DJs match</h3><p>Try a different genre or search.</p></div>
+  {% endfor %}
+</div>
+{% endblock %}

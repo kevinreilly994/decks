@@ -64,11 +64,20 @@ Accounts are created by an admin (`createsuperuser`, then add staff users in-app
 
 ## Testing
 ```bash
-pytest              # 13 tests: models, scoring, providers, admin
+pytest              # 19 tests: models, scoring, providers, admin
 python manage.py check
 ```
 
+## Pages (buyer UI)
+- `/` — **Roster**: searchable, genre-filterable, sortable card grid.
+- `/leaderboard/` — ranked **Popularity Leaderboard** with score bars + 7-day delta.
+- `/dj/<slug>/` — **DJ profile**: metrics, score breakdown, upcoming/played shows,
+  releases, linked socials, and the management/booking panel.
+- `/shortlist/` — session-based **compare** view (add/remove from any card or profile).
+
+All pages require login and share one app shell (left nav rail + search). Styling
+lives in `roster/static/roster/css/app.css` (soft beach-green / sunset palette).
+
 ## Next
-- **Phase 2:** buyer UI (directory, profile, leaderboard, shortlist). Decision
-  pending: Django templates (re-skin the prototype) vs DRF + React.
+- **Phase 2:** done — buyer UI via Django templates (this release).
 - **Phase 3:** live data providers + scheduled refresh.
