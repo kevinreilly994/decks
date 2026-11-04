@@ -124,6 +124,28 @@ docker compose exec web python manage.py createsuperuser
   `DJANGO_ALLOWED_HOSTS`. HTTPS redirect + HSTS are on by default
   (`DJANGO_SECURE_SSL_REDIRECT=false` to disable behind a non-TLS proxy / locally).
 
+## Branch protection
+`main` is protected by an active repository ruleset (**Require CI on main**):
+
+- **All changes land via pull request.** Direct pushes to `main` whose commit
+  hasn't passed the required checks are rejected.
+- **Required checks (must be green to merge):** `test (3.12)`, `test (3.13)`, `docker`.
+- **Strict:** a PR branch must be up to date with `main` before it can merge.
+- `main` **cannot be force-pushed or deleted.**
+
+Typical change flow:
+```bash
+git switch -c my-change
+# ...edit, commit...
+git push -u origin my-change
+gh pr create --fill            # open a PR
+# CI runs automatically; merge once it is green:
+gh pr merge --merge --delete-branch
+```
+
+Admins manage the rule under **Settings -> Rules -> Rulesets** (or via
+`gh api repos/<owner>/<repo>/rulesets`).
+
 ## Next
 - **Phase 2:** done — buyer UI via Django templates (this release).
 - **Phase 3:** done — Spotify + Bandsintown providers, `sync_roster`, scheduler,
