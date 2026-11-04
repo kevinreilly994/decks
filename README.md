@@ -34,6 +34,11 @@ Set `DATABASE_URL` in `.env`, e.g.
 ## Management commands
 - `seed_demo` — idempotently loads the 12 demo DJs (all fictional).
 - `recompute_scores` — recomputes `PopularityScore` for every active DJ.
+- `import_djs <file.csv>` — bulk-import DJs from CSV (see `docs/djs.sample.csv`).
+
+Bulk import is also available in the **admin**: DJs changelist -> **Import DJs (CSV)**
+(upload a CSV — works without shell access, e.g. on Render free tier). Only `name`
+and `genre` are required; existing DJs are matched by name and updated.
 
 ## Project layout
 ```
