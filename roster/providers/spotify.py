@@ -8,6 +8,7 @@ without it (and so tests can inject a fake session).
 from __future__ import annotations
 
 import base64
+from urllib.parse import quote
 from datetime import date, datetime
 
 from django.conf import settings
@@ -80,7 +81,8 @@ class SpotifyProvider(DataProvider):
         if not dj.spotify_artist_id:
             return []
         # top-tracks is restricted for API apps; use the albums endpoint instead.
-        data = self._get(f"/artists/{dj.spotify_artist_id}/albums?market=US&limit=10")
+        aid = quote(dj.spotify_artist_id, safe="")
+        data = self._get(f"/artists/{aid}/albums?market=US&limit=10")
         seen = set()
         out = []
         items = sorted(

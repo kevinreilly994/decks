@@ -72,3 +72,39 @@ def test_import_sets_headshot_source_url():
              "headshot_source_url": "https://example.com/x.webp"}]
     import_djs_from_rows(rows)
     assert DJ.objects.get(name="Shot One").headshot_source_url == "https://example.com/x.webp"
+
+
+@pytest.mark.django_db
+def test_partial_import_preserves_existing_fields():
+    import_djs_from_rows([{
+        "name": "Keeper", "genre": "House", "bio": "Original bio",
+        "spotify_artist_id": "spid123", "home_base": "Berlin, DE",
+    }])
+    # a minimal re-import (only name+genre) must NOT blank existing fields
+    import_djs_from_rows([{"name": "Keeper", "genre": "House"}])
+    dj = DJ.objects.get(name="Keeper")
+    assert dj.bio == "Original bio"
+    assert dj.spotify_artist_id == "spid123"
+    assert dj.home_base == "Berlin, DE"
+
+
+@pytest.mark.django_db
+def test_import_rejects_non_http_headshot():
+    r = import_djs_from_rows([
+        {"name": "Xx", "genre": "House", "headshot_source_url": "javascript:alert(1)"}
+    ])
+    assert DJ.objects.get(name="Xx").headshot_source_url == ""
+    assert any("headshot" in e for e in r["errors"])
+
+
+@pytest.mark.django_db
+def test_dj_avatar_ignores_non_http_url():
+    from django.template import Context, Template
+
+    from roster.models import Genre
+    g, _ = Genre.objects.get_or_create(name="House")
+    dj = DJ.objects.create(name="Zz", primary_genre=g,
+                           headshot_source_url="javascript:alert(1)")
+    out = Template("{% load roster_extras %}{% dj_avatar dj %}").render(Context({"dj": dj}))
+    assert "javascript:" not in out
+    assert "<img" not in out

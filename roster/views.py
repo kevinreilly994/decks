@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .charts import sparkline
@@ -126,4 +127,9 @@ def shortlist_toggle(request, pk):
             ids.append(pk)
         request.session["shortlist"] = ids
         request.session.modified = True
-    return redirect(request.POST.get("next") or "roster:directory")
+    nxt = request.POST.get("next") or ""
+    if nxt and url_has_allowed_host_and_scheme(
+        nxt, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+    ):
+        return redirect(nxt)
+    return redirect("roster:directory")

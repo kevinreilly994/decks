@@ -1,5 +1,7 @@
 """Presentation helpers for the roster templates."""
 from django import template
+from urllib.parse import urlparse
+
 from django.utils.html import format_html
 
 register = template.Library()
@@ -51,6 +53,8 @@ def dj_avatar(dj, size=""):
             url = ""
     if not url:
         url = getattr(dj, "headshot_source_url", "") or ""
+    if url and urlparse(url).scheme not in ("http", "https"):
+        url = ""
     if url:
         return format_html(
             '<div class="{}" style="overflow:hidden">'
