@@ -81,7 +81,7 @@ class DJ(models.Model):
     fee_min = models.PositiveIntegerField(null=True, blank=True)
     fee_max = models.PositiveIntegerField(null=True, blank=True)
     fee_currency = models.CharField(max_length=3, default="USD")
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -119,7 +119,16 @@ class DJ(models.Model):
         return self.shows.filter(status=ShowStatus.PLAYED).order_by("-date")
 
     def latest_snapshot(self):
+        cache = getattr(self, "prefetched_snapshots", None)
+        if cache is not None:
+            return cache[0] if cache else None
         return self.snapshots.order_by("-captured_on").first()
+
+    def next_show(self):
+        cache = getattr(self, "prefetched_shows", None)
+        if cache is not None:
+            return next((s for s in cache if s.status != ShowStatus.PLAYED), None)
+        return self.shows.exclude(status=ShowStatus.PLAYED).order_by("date").first()
 
 
 class SocialAccount(models.Model):
@@ -157,11 +166,11 @@ class Management(models.Model):
 
 class Show(models.Model):
     dj = models.ForeignKey(DJ, on_delete=models.CASCADE, related_name="shows")
-    date = models.DateField()
+    date = models.DateField(db_index=True)
     event_name = models.CharField(max_length=160)
     venue_city = models.CharField(max_length=160)
     status = models.CharField(
-        max_length=12, choices=ShowStatus.choices, default=ShowStatus.OFFER
+        max_length=12, choices=ShowStatus.choices, default=ShowStatus.OFFER, db_index=True
     )
     source = models.CharField(
         max_length=12, choices=DataSource.choices, default=DataSource.MANUAL
@@ -194,7 +203,7 @@ class Release(models.Model):
 
 class EngagementSnapshot(models.Model):
     dj = models.ForeignKey(DJ, on_delete=models.CASCADE, related_name="snapshots")
-    captured_on = models.DateField()
+    captured_on = models.DateField(db_index=True)
     spotify_monthly = models.PositiveBigIntegerField(null=True, blank=True)
     instagram_followers = models.PositiveBigIntegerField(null=True, blank=True)
     tiktok_followers = models.PositiveBigIntegerField(null=True, blank=True)
