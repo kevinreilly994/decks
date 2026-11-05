@@ -130,6 +130,14 @@ docker compose exec web python manage.py createsuperuser
   `DJANGO_ALLOWED_HOSTS`. HTTPS redirect + HSTS are on by default
   (`DJANGO_SECURE_SSL_REDIRECT=false` to disable behind a non-TLS proxy / locally).
 
+### Headshot storage (object storage)
+Admin-uploaded headshots (`DJ.headshot`) need durable storage because Render's disk
+is ephemeral. In production, set an S3-compatible bucket and the app stores/serves
+uploads there (AWS S3, Cloudflare R2, or Backblaze B2). Env vars (set in Render):
+`AWS_STORAGE_BUCKET_NAME`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and
+`AWS_S3_ENDPOINT_URL` (for R2/B2). Leave them unset to keep local-disk storage in dev.
+When no bucket is set, profiles still display the Spotify `headshot_source_url`.
+
 ### Deploy to Render
 This repo includes a `render.yaml` blueprint (web service from the Dockerfile + a
 managed Postgres; `DJANGO_SECRET_KEY` auto-generated, `DATABASE_URL` auto-wired).

@@ -181,3 +181,8 @@ def test_sync_providers_action_without_creds(client, settings):
     )
     assert resp.status_code == 200
     assert dj.releases.count() == 0
+
+
+def test_s3_storage_backend_importable():
+    import importlib
+    assert importlib.import_module("storages.backends.s3") is not None
