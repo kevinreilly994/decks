@@ -65,3 +65,21 @@ def test_shortlist_toggle_blocks_open_redirect(buyer_client):
     resp = buyer_client.post(f"/shortlist/toggle/{dj.id}/", {"next": "https://evil.example/x"})
     assert resp.status_code == 302
     assert "evil.example" not in resp["Location"]
+
+
+@pytest.mark.django_db
+def test_directory_renders_next_show_via_prefetch(buyer_client):
+    make_dj(name="Nova Kane", confirmed_shows=1)  # creates show "Show 0"
+    resp = buyer_client.get("/")
+    assert resp.status_code == 200
+    assert b"Show 0" in resp.content
+
+
+@pytest.mark.django_db
+def test_directory_query_count_is_constant(buyer_client, django_assert_max_num_queries):
+    for i in range(10):
+        make_dj(name=f"DJ {i}", confirmed_shows=2)
+    # With Prefetch + prefetch-aware helpers this must NOT scale with DJ count.
+    with django_assert_max_num_queries(12):
+        resp = buyer_client.get("/")
+    assert resp.status_code == 200

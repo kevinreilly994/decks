@@ -27,7 +27,7 @@
 
 <div class="grid">
   {% for dj in djs %}
-  {% with snap=dj.latest_snapshot next=dj.upcoming_shows.first %}
+  {% with snap=dj.latest_snapshot next=dj.next_show %}
   <div class="card">
     {% if dj.score is not None %}<div class="score-pill">{{ dj.score }}</div>{% endif %}
     <div class="top">

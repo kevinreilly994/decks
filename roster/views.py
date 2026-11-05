@@ -6,12 +6,12 @@ All views require login; unauthenticated users are sent to the admin login
 from __future__ import annotations
 
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
+from django.db.models import Prefetch, Q
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .charts import sparkline
-from .models import DJ, Genre, PopularityScore
+from .models import DJ, EngagementSnapshot, Genre, PopularityScore, Show
 
 SORTS = {
     "score": "-popularity__score",
@@ -28,7 +28,14 @@ def _shortlist_ids(request) -> list[int]:
 def directory(request):
     qs = DJ.objects.filter(is_active=True).select_related(
         "primary_genre", "popularity", "management"
-    ).prefetch_related("snapshots", "shows")
+    ).prefetch_related(
+        Prefetch("snapshots",
+                 queryset=EngagementSnapshot.objects.order_by("-captured_on"),
+                 to_attr="prefetched_snapshots"),
+        Prefetch("shows",
+                 queryset=Show.objects.order_by("date"),
+                 to_attr="prefetched_shows"),
+    )
 
     q = request.GET.get("q", "").strip()
     genre = request.GET.get("genre", "")
@@ -110,6 +117,10 @@ def shortlist(request):
     ids = _shortlist_ids(request)
     djs = DJ.objects.filter(id__in=ids).select_related(
         "primary_genre", "popularity", "management"
+    ).prefetch_related(
+        Prefetch("snapshots",
+                 queryset=EngagementSnapshot.objects.order_by("-captured_on"),
+                 to_attr="prefetched_snapshots"),
     )
     return render(request, "roster/shortlist.html", {
         "djs": djs,

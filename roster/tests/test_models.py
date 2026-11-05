@@ -28,3 +28,12 @@ def test_upcoming_and_past_shows_split_by_status():
 def test_snapshot_social_total():
     dj = make_dj(ig=100, tk=200, sc=300)
     assert dj.latest_snapshot().social_total == 600
+
+
+@pytest.mark.django_db
+def test_next_show_and_latest_snapshot_helpers():
+    from roster.models import ShowStatus
+    dj = make_dj(confirmed_shows=1)
+    assert dj.latest_snapshot() is not None
+    ns = dj.next_show()
+    assert ns is not None and ns.status == ShowStatus.CONFIRMED
